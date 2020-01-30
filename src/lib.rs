@@ -1,3 +1,16 @@
+//! # Quick Start
+//!
+//! Contained within this module are two functions:
+//!   * `is_witness`
+//!   * `is_prime`
+//!
+//! The function `is_witness` performs a single iteration of the Miller-Rabin
+//! primality test.
+//!
+//! On the other hand, `is_prime` is a routine that performs the Miller-Rabin
+//! primality test a given number of times in parallel, exiting as soon as the iterator
+//! encounters a witness for the compositeness of the tested integer.
+
 extern crate num_bigint as bigint;
 extern crate num_integer as integer;
 extern crate num_traits as traits;

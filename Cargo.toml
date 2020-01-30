@@ -1,13 +1,13 @@
 [package]
 name = "miller_rabin"
 description = "A multi-threaded, arbitrary precision implementation of the Miller-Rabin primality test."
-version = "1.0.3"
+version = "1.0.4"
 
 authors = ["cjayross <calvinjayross@gmail.com>"]
 edition = "2018"
 
 repository = "https://github.com/cjayross/miller_rabin"
-documentation = "https://docs.rs/miller_rabin/1.0.3/miller_rabin"
+documentation = "https://docs.rs/miller_rabin/1.0.4/miller_rabin"
 
 license = "MIT"
 keywords = ["miller", "rabin", "prime", "primality", "test"]
