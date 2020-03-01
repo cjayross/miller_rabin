@@ -33,8 +33,7 @@ macro_rules! biguint {
 fn decompose(n: &BigUint) -> (BigUint, BigUint) {
     let one = One::one();
     let ref two = biguint!(2);
-    let ref n_minus_one: BigUint = n - 1u8;
-    let mut d: BigUint = n_minus_one.clone();
+    let mut d: BigUint = (n - 1u8).clone();
     let mut r: BigUint = Zero::zero();
 
     while &d % two == one {
@@ -46,7 +45,7 @@ fn decompose(n: &BigUint) -> (BigUint, BigUint) {
 }
 
 fn __miller_rabin(a: &BigUint, n: &BigUint, d: &BigUint, r: &BigUint) -> bool {
-    let n_minus_one = n - 1u8;
+    let n_minus_one: BigUint = n - 1u8;
     let mut x = a.modpow(d, n);
     let mut count: BigUint = One::one();
     let ref two = biguint!(2);
@@ -72,15 +71,10 @@ fn __miller_rabin(a: &BigUint, n: &BigUint, d: &BigUint, r: &BigUint) -> bool {
 /// # Examples
 ///
 /// ```
-/// extern crate rand;
-/// use rand::distributions::{Distribution, Uniform};
 /// use miller_rabin::is_witness;
 ///
 /// let n: u64 = 27;
-/// let dist = Uniform::new(2, n);
-/// let mut rng = rand::thread_rng();
-/// // A random integer in [2..n]
-/// let a: u64 = dist.sample(&mut rng);
+/// let a: u64 = 2;
 /// assert!(is_witness(&a, &n).unwrap());
 /// ```
 pub fn is_witness<T: ToBigUint>(a: &T, n: &T) -> Option<bool> {
@@ -110,23 +104,25 @@ pub fn is_witness<T: ToBigUint>(a: &T, n: &T) -> Option<bool> {
 /// ```
 pub fn is_prime<T: ToBigUint>(n: &T, k: usize) -> bool {
     let ref n = biguint!(n);
+    let n_minus_one: BigUint = n - 1u8;
     let (ref d, ref r) = decompose(n);
 
-    if n == &Zero::zero() {
+    if n <= &One::one() {
         return false;
-    } else if n < &biguint!(3) {
+    } else if n <= &biguint!(3) {
         return true;
-    } else if n < &biguint!(0xFFFF_FFFF_FFFF_FFFFu64) {
+    } else if n <= &biguint!(0xFFFF_FFFF_FFFF_FFFFu64) {
         let samples: Vec<u8> = vec![2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37];
         return samples
             .par_iter()
+            .filter(|&&m| biguint!(m) < n_minus_one)
             .find_any(|&&a| __miller_rabin(&biguint!(a), n, d, r))
             .is_none();
     }
 
     let mut rng = rand::thread_rng();
-    let samples: Vec<BigUint> = repeat_with(|| rng.gen_biguint(n.bits()))
-        .filter(|m| m < &n)
+    let samples: Vec<BigUint> = repeat_with(|| rng.gen_biguint(n_minus_one.bits()))
+        .filter(|m| m < &n_minus_one)
         .take(k)
         .collect();
 
@@ -152,8 +148,16 @@ mod tests {
 
     #[test]
     fn test_composite() -> io::Result<()> {
-        let composite: u64 = 0x7FFF_FFFE;
+        let composite: u64 = 0xFFFF_FFFF_FFFF_FFFF;
         assert!(!is_prime(&composite, K));
+        Ok(())
+    }
+
+    #[test]
+    fn test_small_primes() -> io::Result<()> {
+        for prime in &[2u8, 3u8, 5u8, 7u8, 11u8, 13u8] {
+            assert!(is_prime(prime, K));
+        }
         Ok(())
     }
 
