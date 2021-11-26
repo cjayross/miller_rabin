@@ -1,8 +1,9 @@
 //! # Quick Start
 //!
-//! Contained within this module are two functions:
+//! Contained within this module are three functions:
 //!   * `is_witness`
 //!   * `is_prime`
+//!   * `is_prime_biguint`
 //!
 //! The function `is_witness` performs a single iteration of the Miller-Rabin
 //! primality test.
@@ -10,6 +11,9 @@
 //! On the other hand, `is_prime` is a routine that performs the Miller-Rabin
 //! primality test a given number of times in parallel, exiting as soon as the iterator
 //! encounters a witness for the compositeness of the tested integer.
+//! 
+//! The function `is_prime_biguint` is the same as `is_prime` but allows for the
+//! passing of `BigUint`s directly for libraries that already use it
 
 extern crate num_bigint as bigint;
 extern crate num_integer as integer;
@@ -104,9 +108,15 @@ pub fn is_witness<T: ToBigUint>(a: &T, n: &T) -> Option<bool> {
 /// ```
 pub fn is_prime<T: ToBigUint>(n: &T, k: usize) -> bool {
     let ref n = biguint!(n);
+    is_prime_biguint(n, k)
+}
+
+/// Another interface for `is_prime()` that handles `BigUint`s instead of types that impl
+/// `ToBigUint`  
+pub fn is_prime_biguint(n: &BigUint, k: usize) -> bool {
     let n_minus_one: BigUint = n - 1u8;
     let (ref d, ref r) = decompose(n);
-
+    
     if n <= &One::one() {
         return false;
     } else if n <= &biguint!(3) {
@@ -119,13 +129,13 @@ pub fn is_prime<T: ToBigUint>(n: &T, k: usize) -> bool {
             .find_any(|&&a| __miller_rabin(&biguint!(a), n, d, r))
             .is_none();
     }
-
+    
     let mut rng = rand::thread_rng();
     let samples: Vec<BigUint> = repeat_with(|| rng.gen_biguint(n_minus_one.bits()))
         .filter(|m| m < &n_minus_one)
         .take(k)
         .collect();
-
+    
     samples
         .par_iter()
         .find_any(|&a| __miller_rabin(a, n, d, r))
