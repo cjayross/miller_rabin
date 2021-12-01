@@ -1,7 +1,7 @@
 [package]
 name = "miller_rabin"
 description = "A multi-threaded, arbitrary precision implementation of the Miller-Rabin primality test."
-version = "1.0.6"
+version = "1.1.0"
 
 authors = ["cjayross <calvinjayross@gmail.com>"]
 edition = "2018"
@@ -15,10 +15,10 @@ categories = ["cryptography", "mathematics"]
 
 [dependencies]
 rayon = "1.2.1"
-rand = "0.5"
+rand = "0.8"
 num-traits = "0.2"
 num-integer = "0.1"
 
 [dependencies.num-bigint]
-version = "0.2"
+version = "0.4"
 features = ["rand"]
