@@ -14,7 +14,7 @@ keywords = ["miller", "rabin", "prime", "primality", "test"]
 categories = ["cryptography", "mathematics"]
 
 [dependencies]
-rayon = "1.2.1"
+rayon = { version = "1.2.1", optional = true }
 rand = "0.8"
 num-traits = "0.2"
 num-integer = "0.1"
@@ -22,3 +22,6 @@ num-integer = "0.1"
 [dependencies.num-bigint]
 version = "0.4"
 features = ["rand"]
+
+[features]
+default = ["rayon"]
