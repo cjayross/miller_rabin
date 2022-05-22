@@ -15,14 +15,18 @@ extern crate num_bigint as bigint;
 extern crate num_integer as integer;
 extern crate num_traits as traits;
 extern crate rand;
+
+#[cfg(feature = "rayon")]
 extern crate rayon;
 
 use {
     bigint::{BigUint, RandBigInt, ToBigUint},
-    rayon::prelude::*,
     std::iter::repeat_with,
     traits::{One, Zero},
 };
+
+#[cfg(feature = "rayon")]
+use rayon::prelude::*;
 
 macro_rules! biguint {
     ($e:expr) => {
@@ -116,10 +120,19 @@ pub fn is_prime<T: ToBigUint>(n: &T, k: usize) -> bool {
         return true;
     } else if n <= &biguint!(0xFFFF_FFFF_FFFF_FFFFu64) {
         let samples: Vec<u8> = vec![2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37];
+
+        #[cfg(feature = "rayon")]
         return samples
             .par_iter()
             .filter(|&&m| biguint!(m) < n_minus_one)
             .find_any(|&&a| miller_rabin(&biguint!(a), n, d, r))
+            .is_none();
+
+        #[cfg(not(feature = "rayon"))]
+        return samples
+            .iter()
+            .filter(|&&m| biguint!(m) < n_minus_one)
+            .find(|&&a| miller_rabin(&biguint!(a), n, d, r))
             .is_none();
     }
 
@@ -129,10 +142,14 @@ pub fn is_prime<T: ToBigUint>(n: &T, k: usize) -> bool {
         .take(k)
         .collect();
 
-    samples
+    #[cfg(feature = "rayon")]
+    return samples
         .par_iter()
         .find_any(|&a| miller_rabin(a, n, d, r))
-        .is_none()
+        .is_none();
+
+    #[cfg(not(feature = "rayon"))]
+    samples.iter().find(|&a| miller_rabin(a, n, d, r)).is_none()
 }
 
 #[cfg(test)]
